@@ -7,11 +7,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "merchant")
-//@Getter
-//@Setter
-//@AllArgsConstructor
-//@NoArgsConstructor
-//@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Merchant {
 
     @Id
