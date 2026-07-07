@@ -77,6 +77,9 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 .filter(key -> key.getMerchant().getId().equals(merchantId))
                 .orElseThrow(()-> new ResourceNotFoundException("ApiKey",keyId));
 
+        //we cannot rotate a disbled key
+        if(!apiKey.isEnabled()) throw new RuntimeException("Cannot rotate a disabled key");
+
         //Now need to generate the new secret
         String newRawSecret = RandomizerUtil.randomBase64(40);
         apiKey.setPreviousKeySecretHash(apiKey.getKeySecretHash()); // setting up prev key to current secret hash
