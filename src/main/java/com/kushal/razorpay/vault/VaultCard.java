@@ -1,4 +1,5 @@
 package com.kushal.razorpay.vault;
+import com.kushal.razorpay.common.entity.BaseEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -6,7 +7,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name="vault_Card")
-public class VaultCard {
+public class VaultCard extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-@JsonInclude(JsonInclude.Include.NON_NULL) //it will remove all the fields that are null, and returns only the fiels that are non null to user
+@JsonInclude(JsonInclude.Include.NON_NULL) //it will remove all the fields that are null, and returns only the fields that are non-null to user
 public record PaymentResponse(
         UUID id,
         UUID orderId,

@@ -1,4 +1,5 @@
 package com.kushal.razorpay.operations.entity;
+import com.kushal.razorpay.common.entity.BaseEntity;
 import jakarta.persistence.*;
 
 @Entity

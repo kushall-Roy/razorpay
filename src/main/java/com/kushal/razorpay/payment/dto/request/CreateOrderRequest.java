@@ -9,8 +9,8 @@ public record CreateOrderRequest(
         @NotNull(message = "Amount is required")
         Money amount,
 
-        @Size(max = 100)
-        String receipt, // order-id known to merchant
+        @Size(max = 100)  // receipt could be nullable
+        String receipt, // order-id (known to merchant)
 
         Map<String,Object> notes,
 

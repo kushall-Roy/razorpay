@@ -1,24 +1,26 @@
 package com.kushal.razorpay.payment.entity;
+import com.kushal.razorpay.common.entity.BaseEntity;
 import com.kushal.razorpay.common.entity.Money;
 import com.kushal.razorpay.common.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "order_record")
+@Table(name = "order_record",indexes = {
+        @Index(name = "idx_order_id_merchant_id",columnList = "id,merchant_id"),
+        @Index(name = "idx_order_merchant_id",columnList = "merchant_id")
+})
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderRecord {
+public class OrderRecord extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -39,7 +41,7 @@ public class OrderRecord {
     private OrderStatus orderStatus = OrderStatus.CREATED;
 
     @Column(nullable = false)
-    @Builder.Default
+    @Builder.Default //if we dont add this it will not take the default value for attempts
     private Integer attempts = 0;
 
     @JdbcTypeCode((SqlTypes.JSON))
@@ -48,7 +50,4 @@ public class OrderRecord {
 
     @Column(name = "expires_at",nullable = false)
     private LocalDateTime expiresAt;
-
-
-
 }
