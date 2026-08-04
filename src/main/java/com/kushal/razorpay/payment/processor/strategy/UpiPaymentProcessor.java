@@ -20,9 +20,10 @@ public class UpiPaymentProcessor implements PaymentProcessor {
                     "Bank rejected the transaction registration");
         }
 
-        String processorRef = "UPI_PROCESSOR"+ RandomizerUtil.randomBase64(16);
-        String bankRef = "BANK_REF"+RandomizerUtil.randomBase64(16);
+        String processorRef = "UPI_PROCESSOR_"+ RandomizerUtil.randomBase64(16);
+       // String bankRef = "BANK_REF"+RandomizerUtil.randomBase64(16);
+        //No need for this bankRef, because it will come from NPCI switch, not from here
 
-        return new PaymentProcessorResponse.Success(processorRef,bankRef);
+        return new PaymentProcessorResponse.Pending(processorRef);
     }
 }

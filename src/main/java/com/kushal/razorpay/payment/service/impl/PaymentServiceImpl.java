@@ -79,6 +79,8 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.setErrorDescription(errorDescription);
             }
             case PaymentResult.Success(String bankReference) -> {
+                log.warn("Invalid state");
+                return null;
             }
         }
         payment = paymentRepository.save(payment);

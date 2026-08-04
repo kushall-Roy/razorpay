@@ -21,9 +21,9 @@ public class NetBankingPaymentProcessor implements PaymentProcessor {
                     "Bank rejected the transaction registration");
         }
 
-        String processorRef = "NBK_PROCESSOR"+ RandomizerUtil.randomBase64(16);
+        String processorRef = "NBK_PROCESSOR_"+ RandomizerUtil.randomBase64(16);
         String redirectRef = "http://REDIRECT_BANK.com"+processorRef;
 
-        return new PaymentProcessorResponse.Success(processorRef,redirectRef);
+        return new PaymentProcessorResponse.Pending(processorRef);
     }
 }

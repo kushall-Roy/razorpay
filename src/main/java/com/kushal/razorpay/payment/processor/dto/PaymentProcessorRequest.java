@@ -15,7 +15,7 @@ public record PaymentProcessorRequest(
         Map<String,Object> methodDetails
 ) {
 
-    public static PaymentProcessorRequest card(UUID paymentId,String pan,String expiry, Money amount, Map<String,Object> details){
+    public static PaymentProcessorRequest  card(UUID paymentId,String pan,String expiry, Money amount, Map<String,Object> details){
         return new PaymentProcessorRequest(UUID.randomUUID(),paymentId,PaymentMethod.CARD,amount,pan,expiry,details);
     }
 
