@@ -14,6 +14,7 @@ import com.kushal.razorpay.payment.gateway.dto.PaymentResult;
 import com.kushal.razorpay.payment.mapper.PaymentMapper;
 import com.kushal.razorpay.payment.repository.OrderRepository;
 import com.kushal.razorpay.payment.repository.PaymentRepository;
+import com.kushal.razorpay.payment.repository.PaymentTransitionLogRepository;
 import com.kushal.razorpay.payment.service.PaymentService;
 import com.kushal.razorpay.payment.statemachine.PaymentTransitionService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentGatewayRouter paymentGatewayRouter;
     private final PaymentMapper paymentMapper;
     private final PaymentTransitionService paymentTransitionService;
+    private final PaymentTransitionLogRepository paymentTransitionLogRepository;
 
     @Override
     @Transactional()
@@ -56,6 +58,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .amount(order.getAmount())
                 .status(PaymentStatus.CREATED)
                 .method(request.method())
+                .idempotencyKey(UUID.randomUUID().toString()) //TODO: idempotency
                 .methodDetails(request.methodDetails())
                 .build();
 
@@ -68,6 +71,7 @@ public class PaymentServiceImpl implements PaymentService {
                                    request.method(),
                                    request.methodDetails());
 
+        paymentTransitionService.apply(payment,PaymentEvent.AUTHORIZE_ATTEMPT);
         PaymentResult result = paymentGatewayRouter.initiate(paymentRequest);
 
         switch (result) {
@@ -119,5 +123,47 @@ public class PaymentServiceImpl implements PaymentService {
         payment = paymentRepository.save(payment);
         //TODO : Send  an outbox (kafka event)
         return paymentMapper.toResponse(payment);
+    }
+
+    @Override
+    @Transactional
+    public void resolveAuthorization(UUID paymentId, boolean approve, String bankRef, String errorCode, String errorDescription) {
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new ResourceNotFoundException("Payment",paymentId));
+
+        if(payment.getStatus() != PaymentStatus.AUTHORIZING){
+            log.warn("Payment is not in Authorizing state, paymentId : {}, status : {}",paymentId,payment.getStatus());
+            return;
+        }
+
+        OrderRecord orderRecord = payment.getOrder();
+
+        if(approve){
+            paymentTransitionService.apply(payment,PaymentEvent.AUTHORIZE_SUCCESS);
+            payment.setBankReference(bankRef);
+            payment.setAuthorizedAt(LocalDateTime.now());
+
+            //auto-capture
+            paymentTransitionService.apply(payment,PaymentEvent.CAPTURE_REQUEST);
+            PaymentResult captureResult = paymentGatewayRouter.capture(payment.getMethod(),paymentId);
+
+            if(captureResult instanceof PaymentResult.Success success){
+                paymentTransitionService.apply(payment,PaymentEvent.CAPTURE_SUCCESS);
+                payment.setCapturedAt(LocalDateTime.now());
+                orderRecord.setOrderStatus(OrderStatus.PAID);
+            } else if (captureResult instanceof PaymentResult.Failure(String code, String description)) {
+                paymentTransitionService.apply(payment,PaymentEvent.CAPTURE_FAIL);
+                payment.setErrorCode(code);
+                payment.setErrorDescription(description);
+            }
+        }else{
+            paymentTransitionService.apply(payment,PaymentEvent.AUTHORIZE_FAIL);
+            payment.setErrorCode(errorCode);
+            payment.setErrorDescription(errorDescription);
+        }
+
+        paymentRepository.save(payment);
+        orderRepository.save(orderRecord);
     }
 }

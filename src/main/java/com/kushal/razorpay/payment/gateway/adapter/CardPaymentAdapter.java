@@ -9,9 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.UUID;
 
-@Component
-@Slf4j
 @RequiredArgsConstructor
+@Component
 public class CardPaymentAdapter implements PaymentAdapter {
 
     private final VaultService vaultService;
@@ -33,6 +32,6 @@ public class CardPaymentAdapter implements PaymentAdapter {
 
     @Override
     public PaymentResult capture(UUID paymentId) {
-        return null;
+        return new PaymentResult.Success("CARD_REF");
     }
 }
